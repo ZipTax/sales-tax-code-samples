@@ -27,9 +27,10 @@ Welcome to the official `sales-tax-code-samples` repository! This repository con
 └── LICENSE
 ```
 
-- **Go/**: Code samples for integrating with Go.
+- **Go/**: Examples for Go applications.
 - **Python/**: Examples for Python applications.
-- **JavaScript/**: Examples for web-based or Node.js environments.
+- **NodeJS/**: Examples for Node.js applications.
+- **Scala/**: Examples for Scala applications.
 
 ## 🛠️ Prerequisites
 
