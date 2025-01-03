@@ -1,6 +1,6 @@
 # Sales Tax Automation Code Samples
 
-Welcome to the official `sales-tax-automation-code-samples` repository! This repository contains examples of how to integrate and automate sales tax calculations using the [zip.tax API](https://zip.tax/). These code samples are designed to help developers quickly implement and adapt the API in their applications.
+Welcome to the official `sales-tax-code-samples` repository! This repository contains examples of how to integrate and automate sales tax calculations using the [zip.tax API](https://zip.tax/). These code samples are designed to help developers quickly implement and adapt the API in their applications.
 
 ## 🚀 Features
 
