@@ -41,9 +41,12 @@ def print_summary(data):
     print(f"  Lat/Lng: {detail['geoLat']}, {detail['geoLng']}")
     print(f"  Incorporated: {detail['incorporated']}")
 
-    sourcing = data["sourcingRules"]
-    print(f"  Sourcing: {sourcing['description']} ({sourcing['value']})")
-    print(f"  Services taxable: {data['service']['taxable']} | Freight taxable: {data['shipping']['taxable']}")
+    sourcing = data.get("sourcingRules")
+    if sourcing:
+        print(f"  Sourcing: {sourcing['description']} ({sourcing['value']})")
+    service = data.get("service")
+    if service:
+        print(f"  Services taxable: {service['taxable']} | Freight taxable: {data['shipping']['taxable']}")
 
     print("  Jurisdiction rates:")
     for rate in data["baseRates"]:

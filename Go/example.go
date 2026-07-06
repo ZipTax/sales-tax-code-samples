@@ -27,9 +27,9 @@ const baseURL = "https://api.zip-tax.com/request/v60"
 type Response struct {
 	Metadata      Metadata       `json:"metadata"`
 	BaseRates     []BaseRate     `json:"baseRates"`
-	Service       Service        `json:"service"`
+	Service       *Service       `json:"service,omitempty"`
 	Shipping      Shipping       `json:"shipping"`
-	SourcingRules SourcingRules  `json:"sourcingRules"`
+	SourcingRules *SourcingRules `json:"sourcingRules,omitempty"`
 	TaxSummaries  []TaxSummary   `json:"taxSummaries"`
 	ProductDetail *ProductDetail `json:"productDetail,omitempty"`
 	AddressDetail AddressDetail  `json:"addressDetail"`
@@ -172,8 +172,12 @@ func printSummary(data *Response) {
 	fmt.Printf("  Normalized Address: %s\n", data.AddressDetail.NormalizedAddress)
 	fmt.Printf("  Lat/Lng: %f, %f\n", data.AddressDetail.GeoLat, data.AddressDetail.GeoLng)
 	fmt.Printf("  Incorporated: %s\n", data.AddressDetail.Incorporated)
-	fmt.Printf("  Sourcing: %s (%s)\n", data.SourcingRules.Description, data.SourcingRules.Value)
-	fmt.Printf("  Services taxable: %s | Freight taxable: %s\n", data.Service.Taxable, data.Shipping.Taxable)
+	if data.SourcingRules != nil {
+		fmt.Printf("  Sourcing: %s (%s)\n", data.SourcingRules.Description, data.SourcingRules.Value)
+	}
+	if data.Service != nil {
+		fmt.Printf("  Services taxable: %s | Freight taxable: %s\n", data.Service.Taxable, data.Shipping.Taxable)
+	}
 
 	fmt.Println("  Jurisdiction rates:")
 	for _, rate := range data.BaseRates {

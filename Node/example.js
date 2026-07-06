@@ -40,8 +40,12 @@ function printSummary(data) {
     console.log(`  Incorporated: ${detail.incorporated}`);
 
     const sourcing = data.sourcingRules;
-    console.log(`  Sourcing: ${sourcing.description} (${sourcing.value})`);
-    console.log(`  Services taxable: ${data.service.taxable} | Freight taxable: ${data.shipping.taxable}`);
+    if (sourcing) {
+        console.log(`  Sourcing: ${sourcing.description} (${sourcing.value})`);
+    }
+    if (data.service) {
+        console.log(`  Services taxable: ${data.service.taxable} | Freight taxable: ${data.shipping.taxable}`);
+    }
 
     console.log('  Jurisdiction rates:');
     for (const rate of data.baseRates) {
