@@ -23,7 +23,8 @@ def request_v60(api_key, **params):
     """Make a v60 request and return the parsed JSON response."""
     params["key"] = api_key
     response = requests.get(BASE_URL, params=params, timeout=30)
-    response.raise_for_status()
+    if response.status_code != 200:
+        raise RuntimeError(f"Unexpected status code {response.status_code}: {response.text}")
     data = response.json()
 
     code = data.get("metadata", {}).get("response", {}).get("code")

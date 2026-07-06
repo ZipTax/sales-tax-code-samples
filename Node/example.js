@@ -21,7 +21,8 @@ async function requestV60(apiKey, params) {
     const response = await fetch(`${BASE_URL}?${query}`);
 
     if (!response.ok) {
-        throw new Error(`Unexpected status code: ${response.status}`);
+        const body = await response.text();
+        throw new Error(`Unexpected status code ${response.status}: ${body}`);
     }
 
     const data = await response.json();

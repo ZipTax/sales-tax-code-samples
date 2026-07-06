@@ -141,7 +141,7 @@ object ZipTaxClient {
             else Left(s"API error ${taxResponse.metadata.response.code}: ${taxResponse.metadata.response.message}")
           case JsError(errors) => Left(s"Failed to parse JSON: $errors")
         }
-      case Success(response)  => Left(s"Unexpected status code: ${response.code}")
+      case Success(response)  => Left(s"Unexpected status code ${response.code}: ${response.body}")
       case Failure(exception) => Left(s"Error making API request: ${exception.getMessage}")
     }
   }
