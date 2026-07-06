@@ -1,82 +1,123 @@
+"""zip.tax API v60 examples.
+
+Demonstrates the v60 endpoint features:
+  - Address lookup with normalized address and geocoding
+  - Lookup by geographic coordinates (lat/lng)
+  - Structured jurisdiction rates (baseRates) and tax summaries
+  - Sourcing rules and service/freight taxability
+  - Extended address components and shipping rules
+  - Product taxability codes (TIC) via productDetail
+  - Canadian tax rates (GST/PST/HST)
+
+Set your API key in the ZIPTAX_API_KEY environment variable.
+"""
+
+import os
+
 import requests
-import json
 
-class Response:
-    def __init__(self, data):
-        self.version = data.get("version")
-        self.r_code = data.get("rCode")
-        self.results = [Result(result) for result in data.get("results", [])]
-        self.address_detail = AddressDetail(data.get("addressDetail", {}))
+BASE_URL = "https://api.zip-tax.com/request/v60"
 
-class Result:
-    def __init__(self, data):
-        self.geo_postal_code = data.get("geoPostalCode")
-        self.geo_city = data.get("geoCity")
-        self.geo_county = data.get("geoCounty")
-        self.geo_state = data.get("geoState")
-        self.tax_sales = data.get("taxSales")
-        self.tax_use = data.get("taxUse")
-        self.txb_service = data.get("txbService")
-        self.txb_freight = data.get("txbFreight")
-        self.state_sales_tax = data.get("stateSalesTax")
-        self.state_use_tax = data.get("stateUseTax")
-        self.city_sales_tax = data.get("citySalesTax")
-        self.city_use_tax = data.get("cityUseTax")
-        self.city_tax_code = data.get("cityTaxCode")
-        self.county_sales_tax = data.get("countySalesTax")
-        self.county_use_tax = data.get("countyUseTax")
-        self.county_tax_code = data.get("countyTaxCode")
-        self.district_sales_tax = data.get("districtSalesTax")
-        self.district_use_tax = data.get("districtUseTax")
-        self.district1_code = data.get("district1Code")
-        self.district1_sales_tax = data.get("district1SalesTax")
-        self.district1_use_tax = data.get("district1UseTax")
-        self.district2_code = data.get("district2Code")
-        self.district2_sales_tax = data.get("district2SalesTax")
-        self.district2_use_tax = data.get("district2UseTax")
-        self.district3_code = data.get("district3Code")
-        self.district3_sales_tax = data.get("district3SalesTax")
-        self.district3_use_tax = data.get("district3UseTax")
-        self.district4_code = data.get("district4Code")
-        self.district4_sales_tax = data.get("district4SalesTax")
-        self.district4_use_tax = data.get("district4UseTax")
-        self.district5_code = data.get("district5Code")
-        self.district5_sales_tax = data.get("district5SalesTax")
-        self.district5_use_tax = data.get("district5UseTax")
-        self.origin_destination = data.get("originDestination")
 
-class AddressDetail:
-    def __init__(self, data):
-        self.normalized_address = data.get("normalizedAddress")
-        self.incorporated = data.get("incorporated")
-        self.geo_lat = data.get("geoLat")
-        self.geo_lng = data.get("geoLng")
+def request_v60(api_key, **params):
+    """Make a v60 request and return the parsed JSON response."""
+    params["key"] = api_key
+    response = requests.get(BASE_URL, params=params, timeout=30)
+    if response.status_code != 200:
+        raise RuntimeError(f"Unexpected status code {response.status_code}: {response.text}")
+    data = response.json()
 
-def get_sales_tax(address, api_key):
-    try:
-        api_url = f"https://api.zip-tax.com/request/v50?key={api_key}&address={requests.utils.quote(address)}"
-        response = requests.get(api_url)
-        
-        if response.status_code != 200:
-            raise Exception(f"Unexpected status code: {response.status_code}")
+    code = data.get("metadata", {}).get("response", {}).get("code")
+    if code != 100:
+        message = data.get("metadata", {}).get("response", {}).get("message", "unknown error")
+        raise RuntimeError(f"API error {code}: {message}")
 
-        response_data = response.json()
-        return Response(response_data)
-    except Exception as e:
-        print(f"Error fetching sales tax: {e}")
-        return None
+    return data
+
+
+def print_summary(data):
+    """Print the key parts of a v60 response."""
+    detail = data["addressDetail"]
+    print(f"  Normalized Address: {detail['normalizedAddress']}")
+    print(f"  Lat/Lng: {detail['geoLat']}, {detail['geoLng']}")
+    print(f"  Incorporated: {detail['incorporated']}")
+
+    sourcing = data.get("sourcingRules")
+    if sourcing:
+        print(f"  Sourcing: {sourcing['description']} ({sourcing['value']})")
+    service = data.get("service")
+    if service:
+        print(f"  Services taxable: {service['taxable']} | Freight taxable: {data['shipping']['taxable']}")
+
+    print("  Jurisdiction rates:")
+    for rate in data["baseRates"]:
+        print(f"    {rate['jurType']:<24} {rate['jurName']:<20} {rate['rate'] * 100:.3f}%")
+
+    for summary in data["taxSummaries"]:
+        print(f"  {summary['summaryName']}: {summary['rate'] * 100:.2f}%")
+
 
 def main():
-    api_key = "your_api_key_here"  # Replace with your actual API key
-    address = "200 Spectrum Center Dr, Irvine, CA 92618"  # Example Address
+    api_key = os.environ.get("ZIPTAX_API_KEY", "your_api_key_here")
 
-    tax_info = get_sales_tax(address, api_key)
+    # 1. Door-level rate lookup by street address, with extended address
+    #    components and state shipping rules.
+    print("=== Address lookup (extended details) ===")
+    data = request_v60(
+        api_key,
+        address="200 Spectrum Center Dr, Irvine, CA 92618",
+        addressDetailExtended="true",
+        shippingExtended="true",
+    )
+    print_summary(data)
 
-    if tax_info:
-        print(f"Normalized Address: {tax_info.address_detail.normalized_address}")
-        print(f"Address Lat/Lng: {tax_info.address_detail.geo_lat}, {tax_info.address_detail.geo_lng}")
-        if tax_info.results:
-            print(f"Rate: {tax_info.results[0].tax_sales * 100:.2f}%")
+    components = data["addressDetail"].get("address")
+    if components:
+        print(f"  Parsed components: {components['houseNumber']} {components['street']}, "
+              f"{components['city']}, {components['stateCode']} {components['postalCode']}")
+
+    shipping_ext = data["shipping"].get("shippingExtended")
+    if shipping_ext:
+        print(f"  Shipping rule ({shipping_ext['stateCode']}): {shipping_ext['rule']} — "
+              f"exempt when separately stated: {shipping_ext['exemptWhenSeparatelyStated']}")
+
+    # 2. Lookup by geographic coordinates.
+    print("\n=== Coordinate lookup (lat/lng) ===")
+    data = request_v60(api_key, lat=33.65253, lng=-117.74794)
+    print_summary(data)
+
+    # 3. Product-specific tax rules via a Taxability Information Code (TIC).
+    #    TIC 40030 = food and food ingredients. Requires the product_rates
+    #    plan entitlement.
+    print("\n=== Product taxability code (TIC 40030 — food) ===")
+    data = request_v60(
+        api_key,
+        address="100 Broadway, Nashville, TN 37201",
+        taxabilityCode="40030",
+    )
+    product = data.get("productDetail", {}).get("taxabilityCode")
+    if product:
+        print(f"  TIC {product['id']}: {product['title']}")
+        print(f"  Rate action: {product['rateActionCode']} — {product['rateActionMessage']}")
+        for rule in product["rateRules"]:
+            print(f"    Jurisdiction {rule['jurTaxCode']}: "
+                  f"effective {rule['effectiveDt']}, "
+                  f"percent taxable {rule['percentTaxable']}%, "
+                  f"food/drug: {rule['isFoodDrug']}")
+
+    # 4. Canadian tax rates. Requires the rate_loc_can plan entitlement.
+    print("\n=== Canadian lookup (Toronto, ON) ===")
+    data = request_v60(api_key, countryCode="CAN", postalcode="M5V 3L9")
+    for rate in data["baseRates"]:
+        print(f"  {rate['jurType']:<4} {rate['jurName']:<10} {rate['rate'] * 100:.2f}% — {rate['jurDescription']}")
+    for summary in data["taxSummaries"]:
+        for display in summary["displayRates"]:
+            print(f"  {summary['summaryName']}: {display['name']} {display['rate'] * 100:.2f}%")
+
+    # 5. Historical rates for a past period (YYYYMM). Requires the
+    #    historical data plan entitlement.
+    # data = request_v60(api_key, address="200 Spectrum Center Dr, Irvine, CA 92618", historical="202401")
+
 
 if __name__ == "__main__":
     main()
