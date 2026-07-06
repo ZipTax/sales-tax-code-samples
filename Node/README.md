@@ -1,6 +1,6 @@
-# zip.tax API v60 — Go Example
+# zip.tax API v60 — Node.js Example
 
-This example demonstrates the [zip.tax API](https://developers.zip.tax) **v60** in Go, including:
+This example demonstrates the [zip.tax API](https://developers.zip.tax) **v60** in Node.js, including:
 
 - Door-level rate lookup by street address (with normalized address and geocoding)
 - Rate lookup by geographic coordinates (`lat`/`lng`)
@@ -16,15 +16,14 @@ This example demonstrates the [zip.tax API](https://developers.zip.tax) **v60** 
 
 ## Prerequisites
 
-- Go 1.21+ (uses only the standard library)
+- Node.js 18+ (uses the built-in `fetch` API — no dependencies required)
 - An API key from [zip.tax](https://www.zip.tax/)
 
 ## Run
 
 ```bash
-go mod init ziptax-example   # if running standalone
 export ZIPTAX_API_KEY=your_api_key_here
-go run example.go
+node example.js
 ```
 
 ## Sample Output
@@ -32,7 +31,7 @@ go run example.go
 ```
 === Address lookup (extended details) ===
   Normalized Address: 200 Spectrum Center Dr, Irvine, CA 92618-5003, United States
-  Lat/Lng: 33.652530, -117.747940
+  Lat/Lng: 33.65253, -117.74794
   Incorporated: true
   Sourcing: Destination Based Taxation (D)
   Services taxable: N | Freight taxable: N
